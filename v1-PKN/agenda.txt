@@ -1,0 +1,27 @@
+Things to work with to push tool integrations/d3 skills.
+
+Data-handling:
+  1) mixed/multiple sources:
+      json (api-calls, live data pulls w/o page-reset)
+      html (jQuery/ajax get)
+      csv (d3 csv/txt reading)
+      other (tbd - spatial topojson analysis potentials)
+  2) object management:
+      joins/processing cleaning (esp. for adding api/live data)
+      optimization? of above, especially for front-end and asynchronous grabs
+      ability to pull/create time-series with extrapolation/trends (1996-2014, 1960-2015, etc.)
+      basic background checks (manual, grrr) between EIA/EPA/USGS
+      other (tdb-by desired data, by interface/design decisions)
+  3) js function/file linking and nesting:
+      what's the agenda here? what sort of scope games are we looking to play?
+
+Layout:
+  1) bootstrap columns for a differentiated set of span/div frameworks (think U. Richmond/Stamen's Atlas of America)
+  2) (above) minimally responsive
+  3) timeline scrolling in d3
+  4) map or graph zoom (aside typical category headers to switch out data-sets displayed... basic .onClick interactivity)
+  5) customized components svg's (and/or pngs) to show technical/spatial details... (velocity.js? more parallax or long-form tools)
+  6) css/jQuery for expanding/animating options/surrounding framework (opportunity to use sass? decent graphic design integration)
+
+    
+    
