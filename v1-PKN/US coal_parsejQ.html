@@ -14,7 +14,6 @@
 
 			.circlesd:hover {
 			  fill: orange ;
-
 			}
 
 			
@@ -47,6 +46,7 @@
         })
         ponds.push(sObj);
       });
+      });
 
 
       $.get("/damage cases.html", function(dataTab) { //jquery version of ajax
@@ -66,10 +66,21 @@
           })
           spills.push(sObject);
         });
-      
+      });
 
       console.log(ponds); 
-      console.log(spills); 
+      console.log(spills); // in and ready for use/comparison... how do we want to consolidate with the coal power sites and power emissions tables? TBD...
+
+      //SEE HOW THE SPECIFIC GHG STRUCTURE WORKS FOR PARSING SITE DATA
+      /*
+
+      var test = $.get("https://ghgdata.epa.gov/ghgp/service/facilityDetail/2014?id=1007690&ds=E&et=undefined&popup=true#tabs-1", function(dataTest) { //jquery version of ajax
+        console.log(dataTest); //raw html to be sorted/filtered
+
+      }); */
+
+      // since ajax.Error doesn't work for cross-domain events, how can I do python style crawling/info extraction with the least trouble, glitchiness? 
+      //is there a ghg api for requests at the EPA? must be...YES! MOCK-UP REQUESTS. https://www.epa.gov/enviro/greenhouse-gas-restful-data-service
 
 
 
@@ -110,6 +121,8 @@
       group2allP = svg.append("g");
       group2t = svg.append("g");
       group3allC = svg.append("g");
+      group3t = svg.append("g");
+      group4allP = svg.append("g");
       group3t = svg.append("g");
 
 
@@ -390,6 +403,7 @@ group2allP.selectAll("circle")
                  .attr("stroke", "#ffffff")
                   .style("opacity", .5);
 
+// there are 111 entries which don't grab from the main database of ghg... need to update those 111.
 
     
 group3allC.selectAll("circle")
@@ -400,13 +414,19 @@ group3allC.selectAll("circle")
                 .attr("class", "circlesd")
                  //.transition(t)
                  .attr("cx", function(d) {
+                  if (d.lon){
                    return projection([d.lon, d.lat])[0];
+                    }
                  })
                  .attr("cy", function(d) {
+                  if (d.lon){
                    return projection([d.lon, d.lat])[1];
+                    }
                  })
                  .attr("r", function(d) {
-                    return (d.emiss/500000);
+                    if (d.emiss>0){
+                      return (d.emiss/500000);
+                    }
                   })
 
                  .attr("fill", function(d) {
@@ -442,6 +462,60 @@ group3allC.selectAll("circle")
                 
                })
                   .style("opacity", 0.5);
+
+// need to track down the NaN series.
+
+
+
+   group4allP.selectAll("circle") // placeholder for materials
+                 //.data(datasetG)
+                .data(ponds)
+                .enter()
+                .append("circle")
+                .attr("class", "circlesd")
+                 //.transition(t)
+                 .attr("cx", function(d) { 
+                   return projection([d.Longitude, d.Latitude])[0];
+                 })
+                 .attr("cy", function(d) {
+                   return projection([d.Longitude, d.Latitude])[1];
+                 })
+                 .attr("r", function(d) {
+                    return (200);
+                  })
+
+                 .attr("fill", function(d) {
+                    //return "#F2B424";
+                    return "#BB573E";
+                  })
+                 .attr("stroke", "#ffffff")
+                 .attr("label", function(d) {
+                    return (d.Facility+", "+d.UnitName);
+                })
+               
+                .on("mouseover", function(d) {
+
+                //Get this bar's x/y values, then augment for the tooltip
+                var xPosition = parseFloat(d3.select(this).attr("cx")) + 10;
+                var yPosition = parseFloat(d3.select(this).attr("cy")) + 5;
+
+                //Create the tooltip label
+                group3t.append("text")
+                   .attr("id", "tooltip")
+                   .attr("x", xPosition)
+                   .attr("y", yPosition)
+                   .attr("text-anchor", "start")
+                   .attr("font-size", "8px")
+                   .text(d3.select(this).attr("label"));
+
+               })
+               .on("mouseout", function() {
+               
+                //Remove the tooltip
+                d3.select("#tooltip").remove();
+                
+               })
+                  .style("opacity", 0.75); 
 /*
 group3t.selectAll("text")
                  //.data(datasetG)
@@ -472,9 +546,6 @@ group3t.selectAll("text")
 
 }); // coal power plant list
 
-}); //html request
-
-}); //html request
 
     
 
