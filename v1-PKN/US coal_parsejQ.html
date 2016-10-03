@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3: Loading GeoJSON data and generating SVG paths</title>
+		<script type="text/javascript" src="/d3/d3.v3.js"></script>
+		<script type="text/javascript" src="https://code.jquery.com/jquery-1.10.2.js"></script>
+		<style type="text/css">
+			
+
+			body {
+			  font: 10px sans-serif;
+			}
+
+			.circlesd:hover {
+			  fill: orange ;
+
+			}
+
+			
+
+		</style>
+	</head>
+	<body>
+
+        <p>2014 coal use</p>
+
+    <script>
+
+    var ponds=[]; // to eventually hold pond objects from grabbed ESRI data...which rejects cross-domain access
+    var spills=[];
+
+
+    $.get("/hazard ponds.html", function(dataTabRaw) { //jquery version of ajax
+      //console.log(dataTabRaw); //raw html to be sorted/filtered
+      var tabseries=dataTabRaw.split("</div>");
+      
+      tabseries.forEach(function (val){
+        var s=val.split('<td role="gridcell" class="dgrid-cell dgrid-cell-padding dgrid-column-field');
+        s.shift(); // lose intro row, no info there
+        var sObj={};
+        //do work to create object in table now or later?
+        s.forEach(function(line){
+          var entry=line.slice(0,-5).split('>')[1].replace("</td",''); // the cleaned entry
+          var key=line.slice(0,-5).split('>')[0].slice(8).split(' ')[0].replace("_",'').replace("_",'');
+          sObj[key]=entry;
+        })
+        ponds.push(sObj);
+      });
+
+
+      $.get("/damage cases.html", function(dataTab) { //jquery version of ajax
+      //console.log(dataTabRaw); //raw html to be sorted/filtered
+        var tabsery=dataTab.split("</div>");
+        //console.log(tabsery);
+        tabsery.forEach(function (val){
+          var st=val.split('<td role="gridcell" class="dgrid-cell dgrid-cell-padding dgrid-column-field');
+          st.shift(); // lose intro row, no info there
+          var sObject={};
+          //do work to create object in table now or later?
+          st.forEach(function(line){
+            var ent=line.slice(0,-5).split('>')[1].replace("</td",'').replace('<a href="','').replace('" target="_blank"',''); // the cleaned entry
+            var keys=line.slice(0,-5).split('>')[0].slice(8).split(' ')[0].replace("_",'').replace("_",'').replace('KnownPollutantsExceeding_State_and-or_Federal_Standards-_or_Other_Evidence_of_Damage','KnownPollutantsExceeding').replace("-Links",'Links').replace('SpillorContaminated_Site-', 'Type');
+            //bit more elaborate series...
+            sObject[keys]=ent;
+          })
+          spills.push(sObject);
+        });
+      
+
+      console.log(ponds); 
+      console.log(spills); 
+
+
+
+    
+
+      //Width and height
+      var w = 1200;
+      var h = 700;
+      var barPadding = 1;
+
+
+     /*var projection = d3.geo.mercator()
+          .scale(6500*4)
+    //.translate([width / 2, height / 2])
+          .center([-78.49828230419597, 40.06488679447954])
+          //.center([-71.49828230419597,42.06488679447954])
+          .precision(.1);*/
+
+
+      var projection = d3.geo.albersUsa()
+          .scale(1500)
+          .translate([w/2, h/2])
+
+      var path = d3.geo.path()
+          .projection(projection);
+
+
+      //Create SVG element
+      svg = d3.select("body")
+            .append("svg")
+            //.attr("translate","transform(0,100)")
+            .attr("width", w)
+            .attr("height", h);
+
+      group0 = svg.append("g");
+      group1allE = svg.append("g"); //
+      group1t = svg.append("g");
+      group2allP = svg.append("g");
+      group2t = svg.append("g");
+      group3allC = svg.append("g");
+      group3t = svg.append("g");
+
+
+            //.style("background", "#000000");
+      var div = d3.select("body").append("div") 
+    .attr("class", "tooltip")       
+    .style("opacity", 0);
+
+
+      var t = d3.transition()
+            .duration(750)
+
+            .ease();
+
+      datasetG=[];      
+      
+
+
+/*d3.json("/data/countries.json", function(json1) {
+    // //     //d3.json("state_5m.json", function(json1) {
+
+
+            group0.selectAll("path0")
+             .data(json1.geometries)
+             .enter()
+             .append("path")
+             .attr("d", path)
+             .attr("stroke", "#bdbdbd")
+             .attr("stroke-width", ".5")
+             .style("fill", "#d9d9d9");*/
+
+             d3.json("/data/state_5m.json", function(json1) {
+    // //     //d3.json("state_5m.json", function(json1) {
+
+
+            group0.selectAll("path1")
+             .data(json1.geometries)
+             .enter()
+             .append("path")
+             .attr("d", path)
+             .attr("stroke", "#bdbdbd")
+             .attr("stroke-width", ".5")
+             .style("fill", "#d9d9d9");
+
+//});
+
+});
+
+
+
+//------------------------BEGIN FUNCTION HERE------------------ NEST VARIABLE PASSING
+
+
+        //-----------intercept here var passed if object (= good:name){} else {} pass as cluster
+
+          //dataset0=[];
+
+          d3.csv("/data/EIA-860_CoalOp_2014.csv", function(dataCop) {
+
+            d3.csv("/data/EPA_GHG2014-pow.csv", function(dataPower) { // we can show raw... but also copy elements to stateArr.plants
+
+                d3.csv("/data/EPA_GHG2014-all.csv", function(dataEmiss) { // we can show raw... but also copy elements to stateArr.plants
+
+                    d3.csv("/data/USGS_ds140-coalEd.csv", function(dataAsh) { 
+      // sort here if possible based on row/cluster identification
+
+          console.log(dataPower[0]['FACILITY NAME']);
+          console.log(dataEmiss[0]['FACILITY NAME']);
+          var stateArr=[];
+          var plantArr=[];
+
+          var coalmT2014= 774403751;
+          var coalFlyP2014= 0.0590;
+          var coalFlyT2014= 45700000;
+          var coalEMIS2014=0; 
+
+          var state =[];
+
+          for (var row in dataCop){ state.push(dataCop[row].State);}
+
+          var st =[];
+          for (var i=0;i<state.length; i++){
+            if (st.includes(state[i])){
+            } else {
+              st.push(state[i]);
+            }
+          }
+          state=[];
+
+          for (i=0; i<st.length;i++){
+            state=dataCop.filter(function(row){
+              return st[i]===row.State;
+              });
+            //console.log(state);
+            // so from state level... can do plant roll-ups, with generator count & with capacity sum
+            var c=0;
+            var locs='';
+
+            var plants = d3.nest()
+                  .key(function(d) { return d['Plant Name']; })
+                  .rollup(function(v) { return {
+                        generators: v.length,
+                        power: d3.sum(v, function(d) { return d['Nameplate Capacity (MW)']; }),
+                        idP: (d3.sum(v, function(d) { return d['Utility ID']; }))/v.length
+                        }; })
+                  .entries(state);
+
+                  //console.log(plants.length);
+            plants.forEach(function(plan){
+                plan.state=st[i];
+                plan.pName=plan.key; //search in other table...
+
+                dataPower.forEach(function(row){
+                  if (row.STATE ===st[i] && row['FACILITY NAME'].toLowerCase() === plan.pName.toLowerCase()){
+                    plan.lat= row.LATITUDE;
+                    plan.lon= row.LONGITUDE;
+                    plan.city=row['CITY NAME'];
+                    plan.emiss=row['GHG QUANTITY (METRIC TONS CO2e)'];
+                  }
+                })
+
+
+
+                plan.gen=plan.values.generators;
+                plan.cap=plan.values.power;
+                plan.idP=plan.values.idP;
+                delete plan.key;
+                delete plan.values;
+
+                var install=[];
+                state.forEach(function(row){
+                      if (plan.pName=== row['Plant Name']){
+                        //console.log();
+                        install.push(row['Operating Year']);
+                      }
+                })
+
+                plan.yrLast=Math.max.apply(null, install);
+                //plan.yr=install;
+
+            })
+            
+                  
+            //console.log(plants);
+
+            stateArr.push(plants);
+
+            // then circle back and use this to pull 
+          }
+
+          console.log(stateArr); 
+
+          stateArr.forEach(function(st){
+            st.forEach(function(pla){
+              plantArr.push(pla); // flattened
+             if (pla.lat === undefined){
+                  c++;
+                  locs+= pla.pName+': '+pla.state+', ';
+
+                }
+            })
+          })
+
+          console.log(plantArr); 
+
+          // so reduce to get sum... second percentage w/ fly, w/ coal tons, coalemS2014=0; 
+
+
+          plantArr.forEach(function(items){
+            if (items.emiss !== undefined){
+              coalEMIS2014+=Number(items.emiss);
+              //console.log(items.emiss);
+              }
+            });
+
+          var powerEMIS2014=0;
+          dataPower.forEach(function(items){
+            if (items['GHG QUANTITY (METRIC TONS CO2e)']  !== undefined){
+              powerEMIS2014+=Number(items['GHG QUANTITY (METRIC TONS CO2e)'] );
+              //console.log(items.emiss);
+              }
+            });
+
+          var allEMIS2014=0;
+          dataEmiss.forEach(function(items){
+            if (items['GHG QUANTITY (METRIC TONS CO2e)']  !== undefined){
+              allEMIS2014+=Number(items['GHG QUANTITY (METRIC TONS CO2e)'] );
+              }
+            });
+
+          //console.log(coalEMIS2014);
+          var ratioCE=coalEMIS2014/coalmT2014;
+          var ratioAE=coalEMIS2014/coalFlyT2014;
+          console.log(coalEMIS2014, powerEMIS2014, allEMIS2014, coalEMIS2014/powerEMIS2014, coalEMIS2014/allEMIS2014);
+          console.log(coalEMIS2014, coalmT2014, coalFlyT2014, ratioCE, ratioAE);
+
+          /*
+          var coalmT2014= 774403751;
+          var coalFlyP2014= 0.0590;
+          var coalFlyT2014= 45700000;
+          var coalEMIS2014=0; 
+          */
+
+
+
+          // WE HAVE stateArr in json with the coal-based plants, capacity, emissions (which are linear to coal used, and ash produced... fly/bottom)
+          // WE HAVE dataPower with all emissions for power generally - visualize @ lower opacity
+          // WE HAVE dataEmiss with all emissions... roughly countrywide
+
+          //console.log(locs);
+
+
+          // awesome load/match site info... to match emissions - round back to consumption...dust ratios
+
+
+
+
+
+                 
+//------------------- then map the entire system to the graphics
+
+
+
+      //THIS IS THE GEOGRAPHIC TRANSLATION / remap per updat
+
+group1allE.selectAll("circle")
+                 //.data(datasetG)
+                .data(dataEmiss)
+                .enter()
+                .append("circle")
+                .attr("class", "circlesd")
+                 //.transition(t)
+                 .attr("cx", function(d) {
+                   return projection([d.LONGITUDE, d.LATITUDE])[0];
+                 })
+                 .attr("cy", function(d) {
+                   return projection([d.LONGITUDE, d.LATITUDE])[1];
+                 })
+                 .attr("r", function(d) {
+                    return (d['GHG QUANTITY (METRIC TONS CO2e)']/500000);
+                  })
+                 .attr("fill", function(d) {
+                    //return "#F2B424";
+                    return "#000000";
+                  })
+                 .attr("stroke", "#ffffff")
+                 .style("opacity", .25); 
+
+
+group2allP.selectAll("circle")
+                 //.data(datasetG)
+                .data(dataPower)
+                .enter()
+                .append("circle")
+                .attr("class", "circlesd")
+                 //.transition(t)
+                 .attr("cx", function(d) {
+                   return projection([d.LONGITUDE, d.LATITUDE])[0];
+                 })
+                 .attr("cy", function(d) {
+                   return projection([d.LONGITUDE, d.LATITUDE])[1];
+                 })
+                 .attr("r", function(d) {
+                    if (d.pond){
+                    return (d.ponds+d.landfill)/2;
+                    } else if (d.ponds && d.unlined){
+                      return (d.ponds+d.landfill)/2;
+                    } else if (d.unlined && d.unlined){
+                      return (d.unlined+d.landfill)/2;
+                    } else if (d.landfill){
+                      return (d.landfill)/2;
+                    }
+                  })
+                 .attr("fill", function(d) {
+                    //return "#F2B424";
+                    return "#000000";
+                  })
+                 .attr("stroke", "#ffffff")
+                  .style("opacity", .5);
+
+
+    
+group3allC.selectAll("circle")
+                 //.data(datasetG)
+                .data(plantArr)
+                .enter()
+                .append("circle")
+                .attr("class", "circlesd")
+                 //.transition(t)
+                 .attr("cx", function(d) {
+                   return projection([d.lon, d.lat])[0];
+                 })
+                 .attr("cy", function(d) {
+                   return projection([d.lon, d.lat])[1];
+                 })
+                 .attr("r", function(d) {
+                    return (d.emiss/500000);
+                  })
+
+                 .attr("fill", function(d) {
+                    //return "#F2B424";
+                    return "#f1ad0e";
+                  })
+                 .attr("stroke", "#ffffff")
+                 .attr("label", function(d) {
+                    return (d.pName + ", "+d.city+" "+d.state+", emission: " + d.emiss+", fly-ash: " + d.emiss/33.5);
+                })
+               
+                .on("mouseover", function(d) {
+
+                //Get this bar's x/y values, then augment for the tooltip
+                var xPosition = parseFloat(d3.select(this).attr("cx")) + 10;
+                var yPosition = parseFloat(d3.select(this).attr("cy")) + 5;
+
+                //Create the tooltip label
+                group3t.append("text")
+                   .attr("id", "tooltip")
+                   .attr("x", xPosition)
+                   .attr("y", yPosition)
+                   .attr("text-anchor", "start")
+                   .attr("class", "ts10-eveleth-thin")
+                   .attr("font-size", "10px")
+                   .text(d3.select(this).attr("label"));
+
+               })
+               .on("mouseout", function() {
+               
+                //Remove the tooltip
+                d3.select("#tooltip").remove();
+                
+               })
+                  .style("opacity", 0.5);
+/*
+group3t.selectAll("text")
+                 //.data(datasetG)
+                .data(plantArr)
+                .enter()
+                .append("text")
+                 .attr("x", function(d) {
+                   return projection([d.lon, d.lat])[0];
+                 })
+                 .attr("y", function(d) {
+                   return projection([d.lon, d.lat])[1];
+                 })
+                 .attr("text-anchor", "start")
+                  .attr("class", "ts14-serif")
+                  .attr("font-size", "6px")
+                  .text(function(d) {
+                return (d.pName + ", "+d.city+" "+d.state+", emission: " + d.emiss+", fly-ash: " + d.emiss/33.5);
+                })
+               
+                    ; */
+
+ 
+         }); // annual USGS fly-ash series
+                
+      }); // all ghg emitters      
+
+    }); // power ghg emitters
+
+}); // coal power plant list
+
+}); //html request
+
+}); //html request
+
+    
+
+    </script>
+
+
+
+
+
+
+
+
+
+
+	</body>
+</html>
