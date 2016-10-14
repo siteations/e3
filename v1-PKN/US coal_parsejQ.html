@@ -72,16 +72,113 @@
       console.log(spills); // in and ready for use/comparison... how do we want to consolidate with the coal power sites and power emissions tables? TBD...
 
       //SEE HOW THE SPECIFIC GHG STRUCTURE WORKS FOR PARSING SITE DATA
-      /*
+      
+      //API YES! MOCK-UP REQUESTS. https://www.epa.gov/enviro/greenhouse-gas-restful-data-service ... single grab = 12 seconds... this must be minor, additional info.
 
-      var test = $.get("https://ghgdata.epa.gov/ghgp/service/facilityDetail/2014?id=1007690&ds=E&et=undefined&popup=true#tabs-1", function(dataTest) { //jquery version of ajax
-        console.log(dataTest); //raw html to be sorted/filtered
+       $.get("https://iaspub.epa.gov/enviro/efservice/PUB_DIM_FACILITY/FACILITY_ID/=/1003492/", function(dataTest) { //jquery version of ajax
+            var dataStr=[];
+            
+            console.log(dataTest.activeElement.children.length);
 
-      }); */
+            for (i=0; i<dataTest.activeElement.children.length;i++){
+                var dataTestT= dataTest.activeElement.children[i].children;
+                  console.log(dataTestT);
+              
+                  
+                for (item in dataTestT){
+                  if ( dataTestT[item]['localName']=== 'PUBLIC_XML_XML'){
+                    var entry=(dataTestT[item].innerHTML).split('\n');
+                    var entry2=[];
+                    entry.forEach(function(elem){
+                      entry2.push(elem.trim());
+                    })
+                    dataStr.push(entry2); // WHICH THEM BRINGS US TO THE QUESTION OF HOW TO SPLIT/STORE DATA AND WHAT WE WANT TO SHOW IN THE INTERACTION
+                  };
+                };
+            }
+            console.log(dataStr);
 
-      // since ajax.Error doesn't work for cross-domain events, how can I do python style crawling/info extraction with the least trouble, glitchiness? 
-      //is there a ghg api for requests at the EPA? must be...YES! MOCK-UP REQUESTS. https://www.epa.gov/enviro/greenhouse-gas-restful-data-service
+             /* USEFUL REGEX
+              /(<ReportingYear>)\d*(<\/ReportingYear>)/
+              /(<TotalNonBiogenicCO2eFacilitySubpartsCtoJJ massUOM="Metric Tons">)\d*(<\/TotalNonBiogenicCO2eFacilitySubpartsCtoJJ massUOM="Metric Tons">)/
+              /(<TotalBiogenicCO2FacilitySubpartsCtoJJ massUOM="Metric Tons">)\d*(<\/TotalBiogenicCO2FacilitySubpartsCtoJJ massUOM="Metric Tons">)/
+              /(<GHGasName>)(?:\D*?)(<\/GHGasName>)/g
+              /(<GHGasName>)(\d*?|\.*?)(<\/GHGasName>)/g
 
+             /* 
+
+            /*
+            20:43:28.846 
+   <GHG xmlns="http://www.ccdsupport.com/schema/ghg">
+  <FacilitySiteInformation>
+    <FrsID>110021331664</FrsID>
+    <OrisCode>None</OrisCode>
+    <ReportingYear>2010</ReportingYear>
+    <FacilitySiteDetails>
+      <FacilitySite>
+        <FacilitySiteName>HANK NIKKELS PLANT ONE</FacilitySiteName>
+      </FacilitySite>
+      <LocationAddress>
+        <LocationAddressText>821 EAST FIRST AVENUE</LocationAddressText>
+        <LocalityName>ANCHORAGE</LocalityName>
+        <StateIdentity>
+          <StateCode>AK</StateCode>
+        </StateIdentity>
+        <AddressPostalCode>99501</AddressPostalCode>
+      </LocationAddress>
+      <CogenerationUnitEmissionsIndicator>N</CogenerationUnitEmissionsIndicator>
+      <PrimaryNAICSCode>221112</PrimaryNAICSCode>
+      <ParentCompanyDetails>
+        <ParentCompany>
+          <ParentCompanyLegalName>Municipality of Anchorage</ParentCompanyLegalName>
+          <StreetAddress>632 W 6th Avenue</StreetAddress>
+          <City>Anchorage</City>
+          <State>AK</State>
+          <Zip>99501</Zip>
+          <PercentOwnershipInterest>100</PercentOwnershipInterest>
+        </ParentCompany>
+      </ParentCompanyDetails>
+      <TotalNonBiogenicCO2eFacilitySubpartsCtoJJ massUOM="Metric Tons">35954</TotalNonBiogenicCO2eFacilitySubpartsCtoJJ>
+      <TotalBiogenicCO2FacilitySubpartsCtoJJ massUOM="Metric Tons">0</TotalBiogenicCO2FacilitySubpartsCtoJJ>
+      <SubPartInformation>
+        <SubPartC>
+          <GHGasInfoDetails>
+            <GHGasName>Biogenic Carbon dioxide</GHGasName>
+            <GHGasQuantity massUOM="Metric Tons">
+              <CalculatedValue>0</CalculatedValue>
+            </GHGasQuantity>
+          </GHGasInfoDetails>
+          <GHGasInfoDetails>
+            <GHGasName>Methane</GHGasName>
+            <GHGasQuantity massUOM="Metric Tons">
+              <CalculatedValue>0.68</CalculatedValue>
+            </GHGasQuantity>
+          </GHGasInfoDetails>
+          <GHGasInfoDetails>
+            <GHGasName>Nitrous Oxide</GHGasName>
+            <GHGasQuantity massUOM="Metric Tons">
+              <CalculatedValue>0.07</CalculatedValue>
+            </GHGasQuantity>
+          </GHGasInfoDetails>
+          <GHGasInfoDetails>
+            <GHGasName>Carbon Dioxide</GHGasName>
+            <GHGasQuantity massUOM="Metric Tons">
+              <CalculatedValue>35918</CalculatedValue>
+            </GHGasQuantity>
+          </GHGasInfoDetails>
+        </SubPartC>
+      </SubPartInformation>
+    </FacilitySiteDetails>
+    <AbbreviatedReport>Y</AbbreviatedReport>
+    <StartDate>2010-01-01</StartDate>
+    <EndDate>2010-12-31</EndDate>
+    <DateTimeReportGenerated>2011-09-13T18:16:05</DateTimeReportGenerated>
+  </FacilitySiteInformation>
+</GHG>
+
+            */
+
+        });
 
 
     
